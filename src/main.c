@@ -1,10 +1,13 @@
 /*
 * Thank you:
 * https://stackoverflow.com/questions/1798511/how-to-avoid-pressing-enter-with-getchar-for-reading-a-single-character-only
-*
-*
 *  TODO: add option to write Splits to file instead of stdout
 *  TODO: add ability to name splits
+*  TODO: planned flags:
+*  -a (so you can name splits)
+*  -t [NUMBER] so you can set a custom timer sleep
+*  -f [FILE] so you can set a custom output file
+*  -s to silence output of the program except for the timer
 */
 
 #define TIMER_SLEEP 45000
