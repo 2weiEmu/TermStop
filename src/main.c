@@ -7,7 +7,7 @@
 *  TODO: add ability to name splits
 */
 
-#define TIMER_SLEEP 90000
+#define TIMER_SLEEP 45000
 
 
 // LIBS
@@ -28,33 +28,45 @@ enum COMMAND {
 
 
 // global variable to share between the threads
+int split_count = 0;
 int user_command = START;   
-char format_time[16];
+char format_time[28]; // this has to be longer than 16 bytes because for the format_timestamp function the compiler isn't being v smart.
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
+char* default_filepath = "./splits.csv";
 
-void* collect_user_input(void* vargp) {
+void change_user_command(enum COMMAND state) {
+    pthread_mutex_lock(&mutex);
+    user_command = state;
+    pthread_mutex_unlock(&mutex);
+
+}
+
+void* collect_user_input(void*) {
 
     int c;
 
     while (user_command != HALT) {
+	//char split_string[256] = { 0 };
+	char user_split_name[200] = { 0 };
+	char* saved_time;
 
 	c = getchar();
 
 	switch (c) {
 
 	    case SPLIT:
+
+		saved_time = format_time;
+		split_count++;
 		
-		printf("\033[AThis is a split. Split info:\n\n");
-	    case START: 
-	    case QUIT:
+		printf("\033[AThis is a split. Split info: %s | name: %s %d\n\n", saved_time, user_split_name, split_count);
+		change_user_command(c);
+
+		break;
 	    case HALT:
-
-		pthread_mutex_lock(&mutex);
-		user_command = c;
-		pthread_mutex_unlock(&mutex);
-
+		change_user_command(c);
 		break;
 
 	    default:
@@ -66,20 +78,20 @@ void* collect_user_input(void* vargp) {
 
 }
 
-void format_timestamp(char format_time[16], suseconds_t diff_us) {
+void format_timestamp(char format_time[28], suseconds_t diff_us) {
     // TODO:
     
-    int milli = (diff_us / 10000) % 100;
-    int sec = (diff_us / 1000000) % 60;
-    int min = (diff_us / 1000000 / 60) % 60;
-    int hour = ((diff_us / 1000000) / 60 / 60) % 60;
+    short milli = (diff_us / 10000) % 100;
+    short sec = (diff_us / 1000000) % 60;
+    short min = (diff_us / 1000000 / 60) % 60;
+    short hour = ((diff_us / 1000000) / 60 / 60) % 60;
 
-    sprintf(format_time, "%.2dh-%.2dm-%.2ds-%.2dms", hour, min, sec, milli);
+    sprintf(format_time, "%.2dh.%.2dm.%.2ds.%.2dms", hour, min, sec, milli);
     
 }
 
 // MAIN
-int main(int argc, char** argv) {
+int main(void) {
 
     static struct termios oldt, newt;
     // Get current terminal settings
@@ -105,7 +117,7 @@ int main(int argc, char** argv) {
     // XXh-XXm-XXs-XXms 16 chars.
 
 
-    while(user_command != HALT) {
+    while (user_command != HALT) {
 
 	gettimeofday(&intermediate, NULL);
 	diff_s = intermediate.tv_sec - before.tv_sec;
@@ -125,7 +137,7 @@ int main(int argc, char** argv) {
     pthread_join(thread_id, NULL); // waiting for the input thread to finish
 
     printf("\n"); // purely for formatting
-    tcsetattr( STDIN_FILENO, TCSANOW, &oldt); // restore terminal settings
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // restore terminal settings
 
     return 0;
 }
