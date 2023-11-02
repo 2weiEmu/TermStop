@@ -19,6 +19,7 @@
 #include <unistd.h> //STDIN_FILENO
 #include <sys/time.h>
 #include <pthread.h>
+#include <string.h>
 
 // VARS
 enum COMMAND {
@@ -34,10 +35,12 @@ enum COMMAND {
 int split_count = 0;
 int user_command = START;   
 char format_time[28]; // this has to be longer than 16 bytes because for the format_timestamp function the compiler isn't being v smart.
+static struct termios oldt, newt;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 char* default_filepath = "./splits.csv";
+FILE* splits_csv;
 
 void change_user_command(enum COMMAND state) {
     pthread_mutex_lock(&mutex);
@@ -59,11 +62,36 @@ void* collect_user_input(void*) {
 
 	switch (c) {
 
+
 	    case SPLIT:
 
 		saved_time = format_time;
 		split_count++;
+		pthread_mutex_lock(&mutex);
+
+		// temporarily reset terminal parameters, to the split may be named
+		tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // restore terminal settings
 		
+		// TODO: should quote characters be allowed? they work, but is it a pain for the person using the csv?
+		printf("\nName the new split:\n");
+		fgets(user_split_name, 199, stdin);
+		// remove the \n from the end, because it also scans that
+		strtok(user_split_name, "\n"); // slightly weird / unusual / unsafe seeming way but it works
+
+		// scanf would be used for formatting a string (scan formatted), use gets to get raw input, it goes until EOF or newline
+		// one of the answers here makes sense https://stackoverflow.com/questions/1247989/how-do-you-allow-spaces-to-be-entered-using-scanf
+		// use fgets to get the input and sscanf to _evaluate_ it. (like the post above says)
+		// sscanf(user_split_name, "%s", user_split_name);
+		
+		// set the terminal back to the required settings and unlock the thread
+
+		// writing the splits to the file
+		fprintf(splits_csv, "\"%d\", \"%s\", \"%s\"\n", split_count, saved_time, user_split_name);
+
+		tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+		pthread_mutex_unlock(&mutex);
+
+
 		printf("\033[AThis is a split. Split info: %s | name: %s %d\n\n", saved_time, user_split_name, split_count);
 		change_user_command(c);
 
@@ -96,14 +124,13 @@ void format_timestamp(char format_time[28], suseconds_t diff_us) {
 // MAIN
 int main(void) {
 
-    static struct termios oldt, newt;
-    // Get current terminal settings
-    tcgetattr(STDIN_FILENO, &oldt);
+    tcgetattr(STDIN_FILENO, &oldt); // Get current terminal settings
     newt = oldt;
     // removes ICANON so that terminal input is not buffered
     newt.c_lflag &= ~(ICANON | ECHO);  // makes sure also that ECHO does not imemdiately give me the char twice
-    // set new attributes
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt); // set new attributes
+    
+    splits_csv = fopen(default_filepath, "r+"); // remember for r+ the file must exist TODO: change this
 
     // creating user input collection thread
     pthread_t thread_id;
@@ -115,10 +142,6 @@ int main(void) {
     suseconds_t diff_us;
 
     gettimeofday(&before, NULL);
-
-
-    // XXh-XXm-XXs-XXms 16 chars.
-
 
     while (user_command != HALT) {
 
@@ -138,6 +161,8 @@ int main(void) {
     }
 
     pthread_join(thread_id, NULL); // waiting for the input thread to finish
+    
+    fclose(splits_csv);
 
     printf("\n"); // purely for formatting
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // restore terminal settings
