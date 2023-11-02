@@ -20,6 +20,7 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include <string.h>
+#include <fcntl.h>
 
 // VARS
 enum COMMAND {
@@ -130,7 +131,8 @@ int main(void) {
     newt.c_lflag &= ~(ICANON | ECHO);  // makes sure also that ECHO does not imemdiately give me the char twice
     tcsetattr(STDIN_FILENO, TCSANOW, &newt); // set new attributes
     
-    splits_csv = fopen(default_filepath, "r+"); // remember for r+ the file must exist TODO: change this
+    ftruncate(open(default_filepath, O_CREAT), 0); // WARNING: Does this create the file if it does not exist?
+    splits_csv = fopen(default_filepath, "r+"); 
 
     // creating user input collection thread
     pthread_t thread_id;
@@ -152,6 +154,7 @@ int main(void) {
 	pthread_mutex_lock(&mutex);
 	format_timestamp(format_time, diff_us);
 	pthread_mutex_unlock(&mutex);
+
 	
 
 	usleep(TIMER_SLEEP); 
