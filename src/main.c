@@ -68,13 +68,13 @@ void* collect_user_input(void*) {
 
 		saved_time = format_time;
 		split_count++;
-		pthread_mutex_lock(&mutex);
 
 		// temporarily reset terminal parameters, to the split may be named
 		tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // restore terminal settings
+		pthread_mutex_lock(&mutex);
 		
 		// TODO: should quote characters be allowed? they work, but is it a pain for the person using the csv?
-		printf("\nName the new split:\n");
+		printf("Name the new split which occurred at the following time:\n\n");
 		fgets(user_split_name, 199, stdin);
 		// remove the \n from the end, because it also scans that
 		strtok(user_split_name, "\n"); // slightly weird / unusual / unsafe seeming way but it works
@@ -133,6 +133,10 @@ int main(void) {
     
     ftruncate(open(default_filepath, O_CREAT), 0); // WARNING: Does this create the file if it does not exist?
     splits_csv = fopen(default_filepath, "r+"); 
+
+    // printing the controls
+    // TODO: sorry yea, for now hardcoding the printing of <ENTER> -> fix that
+    printf("Controls: Split <ENTER> | Start: %c | Quit: %c | Halt: %c\n\n", START, QUIT, HALT);
 
     // creating user input collection thread
     pthread_t thread_id;
