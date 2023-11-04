@@ -1,22 +1,21 @@
 /*
 * Thank you:
 * https://stackoverflow.com/questions/1798511/how-to-avoid-pressing-enter-with-getchar-for-reading-a-single-character-only
-*  TODO: add option to write Splits to file instead of stdout
-*  TODO: add ability to name splits
 *  TODO: planned flags:
 *  -a (so you can name splits)
 *  -t [NUMBER] so you can set a custom timer sleep
 *  -f [FILE] so you can set a custom output file
 *  -s to silence output of the program except for the timer
+*  -d [DELIM] string delimiter selection
+*  -q toggling quotes for the csv file
 */
 
-#define TIMER_SLEEP 45000
-
+#define TIMER_SLEEP_US 45000
 
 // LIBS
 #include <stdio.h>
-#include <termios.h> //termios, TCSANOW, ECHO, ICANON
-#include <unistd.h> //STDIN_FILENO
+#include <termios.h>
+#include <unistd.h>
 #include <sys/time.h>
 #include <pthread.h>
 #include <string.h>
@@ -47,10 +46,9 @@ void change_user_command(enum COMMAND state) {
     pthread_mutex_lock(&mutex);
     user_command = state;
     pthread_mutex_unlock(&mutex);
-
 }
 
-void* collect_user_input(void*) {
+void* collect_user_input(void* ) {
 
     int c;
 
@@ -123,7 +121,9 @@ void format_timestamp(char format_time[28], suseconds_t diff_us) {
 }
 
 // MAIN
-int main(void) {
+int main(int argc, char** argv) {
+
+    // parsing the flags
 
     tcgetattr(STDIN_FILENO, &oldt); // Get current terminal settings
     newt = oldt;
@@ -131,8 +131,7 @@ int main(void) {
     newt.c_lflag &= ~(ICANON | ECHO);  // makes sure also that ECHO does not imemdiately give me the char twice
     tcsetattr(STDIN_FILENO, TCSANOW, &newt); // set new attributes
     
-    ftruncate(open(default_filepath, O_CREAT), 0); // WARNING: Does this create the file if it does not exist?
-    splits_csv = fopen(default_filepath, "r+"); 
+    splits_csv = fopen(default_filepath, "w"); 
 
     // printing the controls
     // TODO: sorry yea, for now hardcoding the printing of <ENTER> -> fix that
@@ -141,7 +140,6 @@ int main(void) {
     // creating user input collection thread
     pthread_t thread_id;
     pthread_create(&thread_id, NULL, collect_user_input, NULL);
-
 
     struct timeval before, intermediate;
     time_t diff_s;
@@ -159,9 +157,7 @@ int main(void) {
 	format_timestamp(format_time, diff_us);
 	pthread_mutex_unlock(&mutex);
 
-	
-
-	usleep(TIMER_SLEEP); 
+	usleep(TIMER_SLEEP_US); 
 	printf("\033[AStopwatch: %s\n", format_time);
 
 	//printf("%c", c);
