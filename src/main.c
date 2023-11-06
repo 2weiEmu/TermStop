@@ -186,7 +186,7 @@ int main(int argc, char** argv)
 		else if (optopt == 'd')
 		    printf("No new single-character delimiter was given.\n");
 		else 
-		    printf("Unknown option.\nUsage:\n%s", USAGE);
+		    printf("Unknown option.\nUsage:\n%s\n", USAGE);
 		return 1;
 	    default:
 		abort();
