@@ -14,7 +14,8 @@
 * https://stackoverflow.com/questions/1798511/how-to-avoid-pressing-enter-with-getchar-for-reading-a-single-character-only
 */
 
-enum COMMAND {
+enum COMMAND 
+{
     SPLIT = '\n',
     START = 's',
     QUIT = 'q',
@@ -33,42 +34,46 @@ int CSV_QUOTE_FLAG = 1;		    // -q flag
 // global variable to share between the threads
 static struct termios oldt, newt;
 
-typedef struct state {
+typedef struct state 
+{
     int split_count;
     int user_command;
     char format_time[28];
     pthread_mutex_t mutex;
 
     FILE* splits_csv;
-} state;
+} 
+state;
 
-void change_user_command(enum COMMAND state, struct state* context) {
+void change_user_command(enum COMMAND state, struct state* context) 
+{
     pthread_mutex_lock(&context->mutex);
     context->user_command = state;
     pthread_mutex_unlock(&context->mutex);
 }
 
-void* collect_user_input(void* state) {
-
+void* collect_user_input(void* state) 
+{
     struct state* context = state;
 
     int c;
 
-    while (context->user_command != HALT) {
+    while (context->user_command != HALT) 
+    {
 	char user_split_name[200] = { 0 };
 	char* saved_time;
 
 	c = getchar();
 
-	switch (c) {
-
-
+	switch (c) 
+	{
 	    case SPLIT:
 
 		saved_time = context->format_time;
 		context->split_count++;
 
-		if (NAMING_FLAG) {
+		if (NAMING_FLAG) 
+		{
 		    // temporarily reset terminal parameters, to the split may be named
 		    tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // restore terminal settings
 		    pthread_mutex_lock(&context->mutex);
@@ -89,21 +94,28 @@ void* collect_user_input(void* state) {
 		    // writing the splits to the file
 		    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 		    pthread_mutex_unlock(&context->mutex);
-		} else {
+		} 
+		else 
+		{
 		    sprintf(user_split_name, "Split! Number: %d", context->split_count);
 		}
 
-		if (USE_FILE_FLAG) {
+		if (USE_FILE_FLAG) 
+		{
 		    pthread_mutex_lock(&context->mutex);
-		    if (CSV_QUOTE_FLAG) {
+		    if (CSV_QUOTE_FLAG) 
+		    {
 			fprintf(context->splits_csv, "\"%d\"%c \"%s\"%c \"%s\"\n", context->split_count, DELIMITER, saved_time, DELIMITER, user_split_name);
-		    } else {
+		    } 
+		    else 
+		    {
 			fprintf(context->splits_csv, "%d%c %s%c %s\n", context->split_count, DELIMITER, saved_time, DELIMITER, user_split_name);
 		    }
 		    pthread_mutex_unlock(&context->mutex);
 		}
 
-		if (!SILENCE_FLAG) {
+		if (!SILENCE_FLAG) 
+		{
 		    printf("\033[AThis is a split. Split info: %s | name: %s %d\n\n", saved_time, user_split_name, context->split_count);
 		}
 		change_user_command(c, context);
@@ -122,28 +134,27 @@ void* collect_user_input(void* state) {
 
 }
 
-void format_timestamp(char format_time[28], suseconds_t diff_us) {
-    
+void format_timestamp(char format_time[28], suseconds_t diff_us) 
+{
     short milli = (diff_us / 10000) % 100;
     short sec = (diff_us / 1000000) % 60;
     short min = (diff_us / 1000000 / 60) % 60;
     short hour = ((diff_us / 1000000) / 60 / 60) % 60;
 
     sprintf(format_time, "%.2dh.%.2dm.%.2ds.%.2dms", hour, min, sec, milli);
-    
 }
 
 // MAIN
-int main(int argc, char** argv) {
-
+int main(int argc, char** argv) 
+{
     // parsing the flags
     opterr = 0;
     int c;
 
-    while ((c = getopt(argc, argv, "at:f:d:sq")) != -1) {
-
-	switch (c) {
-
+    while ((c = getopt(argc, argv, "at:f:d:sq")) != -1) 
+    {
+	switch (c) 
+	{
 	    case 'a':
 		NAMING_FLAG = 1;
 		break;
@@ -217,7 +228,8 @@ int main(int argc, char** argv) {
 
     gettimeofday(&before, NULL);
 
-    while (context.user_command != HALT) {
+    while (context.user_command != HALT) 
+    {
 
 	gettimeofday(&intermediate, NULL);
 	diff_s = intermediate.tv_sec - before.tv_sec;
