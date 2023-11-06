@@ -191,8 +191,10 @@ int main(int argc, char** argv) {
 
     }
 
-    printf("NAMING_FLAG: %d\nTIMER_SLEEP_US: %d\nUSE_FILE_FLAG: %d\nFILE_OUTPUT_PATH: %s\nDELIMETER: %c\nSILENCE_FLAG: %d\nCSV_QUOTE_FLAG: %d\n",
+    #ifdef DEBUG
+	printf("NAMING_FLAG: %d\nTIMER_SLEEP_US: %d\nUSE_FILE_FLAG: %d\nFILE_OUTPUT_PATH: %s\nDELIMETER: %c\nSILENCE_FLAG: %d\nCSV_QUOTE_FLAG: %d\n",
 	   NAMING_FLAG, TIMER_SLEEP_US, USE_FILE_FLAG, FILE_OUTPUT_PATH, DELIMITER, SILENCE_FLAG, CSV_QUOTE_FLAG);
+    #endif
 
     // setting up the terminal
     tcgetattr(STDIN_FILENO, &oldt); // Get current terminal settings
