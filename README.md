@@ -16,5 +16,12 @@ Press 'h' to stop the program.
 
 ## Installation / Use
 
-TODO
+```bash
+$ sudo make install
+```
 
+or 
+
+```bash
+\# make install
+```
