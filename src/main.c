@@ -22,6 +22,8 @@ enum COMMAND
     HALT = 'h'
 };
 
+const char* USAGE = "termstop [-a -s -q] [-t us-sleep] [-f save-file] [-d delimiter]";
+
 int NAMING_FLAG = 0;		    // -a flag
 int TIMER_SLEEP_US = 45000;	    // -t flag
 int USE_FILE_FLAG = 0;		    // -f flag
@@ -178,13 +180,13 @@ int main(int argc, char** argv)
 		
 	    case '?': // TODO: better errors needed
 		if (optopt == 't')
-		    printf("Unknown t option");
+		    printf("No option for the t flag was given. Please give a time in microseconds.\n");
 		else if (optopt == 'f')
-		    printf("No file option given");
+		    printf("No file to save to was specified.\n");
 		else if (optopt == 'd')
-		    printf("No new delimiter given");
+		    printf("No new single-character delimiter was given.\n");
 		else 
-		    printf("Unknown option.");
+		    printf("Unknown option.\nUsage:\n%s", USAGE);
 		return 1;
 	    default:
 		abort();

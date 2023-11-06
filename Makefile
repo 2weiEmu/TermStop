@@ -11,9 +11,9 @@ debug-run: $(objects)
 	./debug-build
 
 clean: 
-	@rm ./debug-build
-	@rm ./main
-	@rm ./termstop
+	@rm -f ./debug-build
+	@rm -f ./main
+	@rm -f ./termstop
 
 install:
 	# TODO: these values are quite hardcoded. Fix this
