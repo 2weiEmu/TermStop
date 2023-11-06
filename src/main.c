@@ -99,7 +99,7 @@ void* collect_user_input(void* state)
 		} 
 		else 
 		{
-		    sprintf(user_split_name, "Split! Number: %d", context->split_count);
+		    sprintf(user_split_name, "split-number-%d", context->split_count);
 		}
 
 		if (USE_FILE_FLAG) 
@@ -118,7 +118,7 @@ void* collect_user_input(void* state)
 
 		if (!SILENCE_FLAG) 
 		{
-		    printf("\033[AThis is a split. Split info: %s | name: %s %d\n\n", saved_time, user_split_name, context->split_count);
+		    printf("\033[Asplit\t\t%s\t\tname\t\t%s\t\tcount\t\t%d\n\n", saved_time, user_split_name, context->split_count);
 		}
 		change_user_command(c, context);
 
@@ -242,7 +242,7 @@ int main(int argc, char** argv)
 	pthread_mutex_unlock(&context.mutex);
 
 	usleep(TIMER_SLEEP_US); 
-	printf("\033[AStopwatch: %s\n", context.format_time);
+	printf("\033[Atime\t\t%s\n", context.format_time);
 
 	//printf("%c", c);
     }

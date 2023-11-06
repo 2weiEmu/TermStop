@@ -15,6 +15,9 @@ clean:
 	@rm -f ./main
 	@rm -f ./termstop
 
+build:
+	@gcc -o termstop $(flags) $(objects) $(libs)
+
 install:
 	# TODO: these values are quite hardcoded. Fix this
 	# TODO: make sure all the directories exist
