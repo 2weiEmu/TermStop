@@ -20,8 +20,3 @@ Press 'h' to stop the program.
 $ sudo make install
 ```
 
-or 
-
-```bash
-\# make install
-```
