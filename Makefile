@@ -13,6 +13,7 @@ debug-run: $(objects)
 clean: 
 	@rm ./debug-build
 	@rm ./main
+	@rm ./termstop
 
 install:
 	# TODO: these values are quite hardcoded. Fix this
