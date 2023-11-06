@@ -1,16 +1,3 @@
-/*
-* Thank you:
-* https://stackoverflow.com/questions/1798511/how-to-avoid-pressing-enter-with-getchar-for-reading-a-single-character-only
-*  TODO: planned flags:
-*  -a (so you can name splits)
-*  -t [NUMBER] so you can set a custom timer sleep
-*  -f [FILE] so you can set a custom output file
-*  -s to silence output of the program except for the timer -> this overrides -a
-*  -d [DELIM] string delimiter selection
-*  -q toggling quotes for the csv file to off
-*/
-
-// LIBS
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
@@ -22,7 +9,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-// VARS
+/*
+* Thank you:
+* https://stackoverflow.com/questions/1798511/how-to-avoid-pressing-enter-with-getchar-for-reading-a-single-character-only
+*/
+
 enum COMMAND {
     SPLIT = '\n',
     START = 's',
@@ -30,39 +21,40 @@ enum COMMAND {
     HALT = 'h'
 };
 
-// default flag values
-int NAMING_FLAG = 0;  // -a flag
-int TIMER_SLEEP_US = 45000; // -t flag
-int USE_FILE_FLAG = 0; // -f flag
-char FILE_OUTPUT_PATH[256] = ""; // -f flag
-char DELIMITER = ','; // -d flag
-int SILENCE_FLAG = 0; // -s flag
-int CSV_QUOTE_FLAG = 1; // -q flag
+int NAMING_FLAG = 0;		    // -a flag
+int TIMER_SLEEP_US = 45000;	    // -t flag
+int USE_FILE_FLAG = 0;		    // -f flag
+char FILE_OUTPUT_PATH[256] = "";    // -f flag
+char DELIMITER = ',';		    // -d flag
+int SILENCE_FLAG = 0;		    // -s flag
+int CSV_QUOTE_FLAG = 1;		    // -q flag
 
 
 // global variable to share between the threads
-int split_count = 0;
-int user_command = START;   
-char format_time[28]; // this has to be longer than 16 bytes because for the format_timestamp function the compiler isn't being v smart.
 static struct termios oldt, newt;
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+typedef struct state {
+    int split_count;
+    int user_command;
+    char format_time[28];
+    pthread_mutex_t mutex;
 
-char* default_filepath = "./splits.csv";
-FILE* splits_csv;
+    FILE* splits_csv;
+} state;
 
-void change_user_command(enum COMMAND state) {
-    pthread_mutex_lock(&mutex);
-    user_command = state;
-    pthread_mutex_unlock(&mutex);
+void change_user_command(enum COMMAND state, struct state* context) {
+    pthread_mutex_lock(&context->mutex);
+    context->user_command = state;
+    pthread_mutex_unlock(&context->mutex);
 }
 
-void* collect_user_input(void* ) {
+void* collect_user_input(void* state) {
+
+    struct state* context = state;
 
     int c;
 
-    while (user_command != HALT) {
-	//char split_string[256] = { 0 };
+    while (context->user_command != HALT) {
 	char user_split_name[200] = { 0 };
 	char* saved_time;
 
@@ -73,13 +65,13 @@ void* collect_user_input(void* ) {
 
 	    case SPLIT:
 
-		saved_time = format_time;
-		split_count++;
+		saved_time = context->format_time;
+		context->split_count++;
 
 		if (NAMING_FLAG) {
 		    // temporarily reset terminal parameters, to the split may be named
 		    tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // restore terminal settings
-		    pthread_mutex_lock(&mutex);
+		    pthread_mutex_lock(&context->mutex);
 		    
 		    // TODO: should quote characters be allowed? they work, but is it a pain for the person using the csv?
 		    printf("Name the new split which occurred at the following time:\n\n");
@@ -96,29 +88,29 @@ void* collect_user_input(void* ) {
 
 		    // writing the splits to the file
 		    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-		    pthread_mutex_unlock(&mutex);
+		    pthread_mutex_unlock(&context->mutex);
 		} else {
-		    sprintf(user_split_name, "Split! Number: %d", split_count);
+		    sprintf(user_split_name, "Split! Number: %d", context->split_count);
 		}
 
 		if (USE_FILE_FLAG) {
-		    pthread_mutex_lock(&mutex);
+		    pthread_mutex_lock(&context->mutex);
 		    if (CSV_QUOTE_FLAG) {
-			fprintf(splits_csv, "\"%d\"%c \"%s\"%c \"%s\"\n", split_count, DELIMITER, saved_time, DELIMITER, user_split_name);
+			fprintf(context->splits_csv, "\"%d\"%c \"%s\"%c \"%s\"\n", context->split_count, DELIMITER, saved_time, DELIMITER, user_split_name);
 		    } else {
-			fprintf(splits_csv, "%d%c %s%c %s\n", split_count, DELIMITER, saved_time, DELIMITER, user_split_name);
+			fprintf(context->splits_csv, "%d%c %s%c %s\n", context->split_count, DELIMITER, saved_time, DELIMITER, user_split_name);
 		    }
-		    pthread_mutex_unlock(&mutex);
+		    pthread_mutex_unlock(&context->mutex);
 		}
 
 		if (!SILENCE_FLAG) {
-		    printf("\033[AThis is a split. Split info: %s | name: %s %d\n\n", saved_time, user_split_name, split_count);
+		    printf("\033[AThis is a split. Split info: %s | name: %s %d\n\n", saved_time, user_split_name, context->split_count);
 		}
-		change_user_command(c);
+		change_user_command(c, context);
 
 		break;
 	    case HALT:
-		change_user_command(c);
+		change_user_command(c, context);
 		break;
 
 	    default:
@@ -131,7 +123,6 @@ void* collect_user_input(void* ) {
 }
 
 void format_timestamp(char format_time[28], suseconds_t diff_us) {
-    // TODO:
     
     short milli = (diff_us / 10000) % 100;
     short sec = (diff_us / 1000000) % 60;
@@ -196,6 +187,11 @@ int main(int argc, char** argv) {
 	   NAMING_FLAG, TIMER_SLEEP_US, USE_FILE_FLAG, FILE_OUTPUT_PATH, DELIMITER, SILENCE_FLAG, CSV_QUOTE_FLAG);
     #endif
 
+    state context;
+    pthread_mutex_init(&context.mutex, NULL);
+    context.split_count = 0;
+    context.user_command = START;
+
     // setting up the terminal
     tcgetattr(STDIN_FILENO, &oldt); // Get current terminal settings
     newt = oldt;
@@ -204,7 +200,7 @@ int main(int argc, char** argv) {
     tcsetattr(STDIN_FILENO, TCSANOW, &newt); // set new attributes
     
     if (USE_FILE_FLAG) 
-	splits_csv = fopen(FILE_OUTPUT_PATH, "w"); 
+	context.splits_csv = fopen(FILE_OUTPUT_PATH, "w"); 
 
     // printing the controls
     // TODO: sorry yea, for now hardcoding the printing of <ENTER> -> fix that
@@ -212,26 +208,27 @@ int main(int argc, char** argv) {
 
     // creating user input collection thread
     pthread_t thread_id;
-    pthread_create(&thread_id, NULL, collect_user_input, NULL);
+    pthread_create(&thread_id, NULL, collect_user_input, &context);
 
+    // creating timer settings
     struct timeval before, intermediate;
     time_t diff_s;
     suseconds_t diff_us;
 
     gettimeofday(&before, NULL);
 
-    while (user_command != HALT) {
+    while (context.user_command != HALT) {
 
 	gettimeofday(&intermediate, NULL);
 	diff_s = intermediate.tv_sec - before.tv_sec;
 	diff_us = ((diff_s * 1000000) + intermediate.tv_usec) - before.tv_usec;
 
-	pthread_mutex_lock(&mutex);
-	format_timestamp(format_time, diff_us);
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_lock(&context.mutex);
+	format_timestamp(context.format_time, diff_us);
+	pthread_mutex_unlock(&context.mutex);
 
 	usleep(TIMER_SLEEP_US); 
-	printf("\033[AStopwatch: %s\n", format_time);
+	printf("\033[AStopwatch: %s\n", context.format_time);
 
 	//printf("%c", c);
     }
@@ -239,7 +236,7 @@ int main(int argc, char** argv) {
     pthread_join(thread_id, NULL); // waiting for the input thread to finish
     
     if (USE_FILE_FLAG)
-	fclose(splits_csv);
+	fclose(context.splits_csv);
 
     printf("\n"); // purely for formatting
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // restore terminal settings
