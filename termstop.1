@@ -1,0 +1,60 @@
+.TH termstop 1
+.SH NAME
+.PP
+TermStop - A simple terminal stopwatch
+
+.SH SYNOPSIS
+.PP
+termstop [-a -s -q] [-t us-sleep] [-f save-file] [-d delimiter]
+
+.SH DESCRIPTION
+.PP
+This program is a simple stopwatch in a terminal, written in C. The default commands for the program are as follows:
+
+.SH OPTIONS
+.TP
+.B -a
+enable the naming of individual splits. The name will be requested each time a new split is created.
+.TP
+.B -s 
+enables silent mode in the program, meaning only the stopwatch timer itself will be printed.
+.TP
+.B -q 
+disables the quotes surrouding the values printed into the CSV (or otherwise delimited file).
+.TP
+.BI -t " us-sleep"
+defines the amount of microseconds the timer sleeps between each new print-interval.
+.TP
+.BI -f " save-file"
+defines the path for the CSV file the splits should be saved to.
+.TP
+.BI -d " delimiter"
+defines a different delimiter to use for the file instead of the standard ',' character.
+
+.SH SHORTCUTS / CONTROLS
+.TP
+.B Enter
+Create a new split at the current time.
+.TP
+.B h
+Stop the program.
+
+.SH CUSTOMISATION
+.TP
+Currently none.
+
+.SH AUTHORS
+.TP
+Robert Arno Saalbach (saalbach.dev)
+
+.SH MAINTAINER
+Robert Arno Saalbach (robert@saalbach.dev)
+
+.SH LICENSE
+.TP
+See the LICENSE file for the terms of redistribution.
+
+.SH SEE ALSO
+.TP
+None.
+

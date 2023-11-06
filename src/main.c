@@ -40,7 +40,6 @@ int SILENCE_FLAG = 0; // -s flag
 int CSV_QUOTE_FLAG = 1; // -q flag
 
 
-
 // global variable to share between the threads
 int split_count = 0;
 int user_command = START;   
@@ -142,16 +141,6 @@ void format_timestamp(char format_time[28], suseconds_t diff_us) {
     sprintf(format_time, "%.2dh.%.2dm.%.2ds.%.2dms", hour, min, sec, milli);
     
 }
-
-
-// default flag values
-// int NAMING_FLAG = 0;  // -a flag
-// int TIMER_SLEEP_US = 45000; // -t flag
-// int USE_FILE_FLAG = 0; // -f flag
-// char FILE_OUTPUT_PATH[256] = ""; // -f flag
-// char DELIMITER = ','; // -d flag
-// int SILENCE_FLAG = 0; // -s flag
-// int CSV_QUOTE_FLAG = 1; // -q flag
 
 // MAIN
 int main(int argc, char** argv) {
