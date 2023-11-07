@@ -4,7 +4,7 @@ Written in basic c. You only need gcc to compile it and nothing special otherwis
 
 ## Use
 ```
-termstop [-a -s -q] [-t us-sleep] [-f save-file] [-d delimiter]
+$ termstop [-a -s -q -v] [-t us-sleep] [-f save-file] [-d delimiter]
 ```
 
 See the `man` page for an explanation of the options.

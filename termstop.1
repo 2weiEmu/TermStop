@@ -1,11 +1,11 @@
 .TH termstop 1
 .SH NAME
 .PP
-TermStop - A simple terminal stopwatch
+TermStop - A simple terminal stopwatch. Version 0.1.0-alpha.
 
 .SH SYNOPSIS
 .PP
-termstop [-a -s -q] [-t us-sleep] [-f save-file] [-d delimiter]
+termstop [-a -s -q -v] [-t us-sleep] [-f save-file] [-d delimiter]
 
 .SH DESCRIPTION
 .PP
@@ -30,6 +30,9 @@ defines the path for the CSV file the splits should be saved to.
 .TP
 .BI -d " delimiter"
 defines a different delimiter to use for the file instead of the standard ',' character.
+.TP
+.B -v 
+outputs the version of the current program.
 
 .SH SHORTCUTS / CONTROLS
 .TP

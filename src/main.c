@@ -22,7 +22,8 @@ enum COMMAND
     HALT = 'h'
 };
 
-const char* USAGE = "termstop [-a -s -q] [-t us-sleep] [-f save-file] [-d delimiter]";
+const char* VERSION = "0.1.0-alpha";
+const char* USAGE = "termstop [-a -s -q -v] [-t us-sleep] [-f save-file] [-d delimiter]";
 
 int NAMING_FLAG = 0;		    // -a flag
 int TIMER_SLEEP_US = 45000;	    // -t flag
@@ -31,6 +32,7 @@ char FILE_OUTPUT_PATH[256] = "";    // -f flag
 char DELIMITER = ',';		    // -d flag
 int SILENCE_FLAG = 0;		    // -s flag
 int CSV_QUOTE_FLAG = 1;		    // -q flag
+int SHOW_VERSION = 0;		    // -v flag
 
 
 // global variable to share between the threads
@@ -153,7 +155,7 @@ int main(int argc, char** argv)
     opterr = 0;
     int c;
 
-    while ((c = getopt(argc, argv, "at:f:d:sq")) != -1) 
+    while ((c = getopt(argc, argv, "avt:f:d:sq")) != -1) 
     {
 	switch (c) 
 	{
@@ -177,6 +179,9 @@ int main(int argc, char** argv)
 	    case 'q':
 		CSV_QUOTE_FLAG = 0;
 		break;
+	    case 'v':
+		SHOW_VERSION = 1;
+		break;
 		
 	    case '?': // TODO: better errors needed
 		if (optopt == 't')
@@ -193,6 +198,12 @@ int main(int argc, char** argv)
 
 	}
 
+    }
+
+    if (SHOW_VERSION) 
+    {
+	printf("%s\n", VERSION);
+	return 0;
     }
 
     #ifdef DEBUG
