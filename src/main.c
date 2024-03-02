@@ -98,28 +98,21 @@ void* collect_user_input(void* state)
 		    pthread_mutex_unlock(&context->mutex);
 		} 
 		else 
-		{
 		    sprintf(user_split_name, "split-number-%d", context->split_count);
-		}
 
 		if (USE_FILE_FLAG) 
 		{
 		    pthread_mutex_lock(&context->mutex);
 		    if (CSV_QUOTE_FLAG) 
-		    {
 			fprintf(context->splits_csv, "\"%d\"%c \"%s\"%c \"%s\"\n", context->split_count, DELIMITER, saved_time, DELIMITER, user_split_name);
-		    } 
 		    else 
-		    {
 			fprintf(context->splits_csv, "%d%c %s%c %s\n", context->split_count, DELIMITER, saved_time, DELIMITER, user_split_name);
-		    }
 		    pthread_mutex_unlock(&context->mutex);
 		}
 
 		if (!SILENCE_FLAG) 
-		{
 		    printf("\033[Asplit\t\t%s\t\tname\t\t%s\t\tcount\t\t%d\n\n", saved_time, user_split_name, context->split_count);
-		}
+
 		change_user_command(c, context);
 
 		break;
