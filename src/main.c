@@ -182,7 +182,7 @@ int main(int argc, char** argv)
 		else if (optopt == 'd')
 		    printf("No new single-character delimiter was given.\n");
 		else 
-		    printf("%s", USAGE);
+		    printf("%s\n", USAGE);
 		return 1;
 	    default:
 		abort();
