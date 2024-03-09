@@ -5,7 +5,6 @@
 #include <pthread.h>
 #include <string.h>
 #include <fcntl.h>
-#include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -23,7 +22,7 @@ enum COMMAND
 };
 
 const char* VERSION = "0.1.0-alpha";
-const char* USAGE = "termstop [-a -s -q -v] [-t us-sleep] [-f save-file] [-d delimiter]";
+const char* USAGE = "Usage: termstop [-a -s -q -v] [-t us-sleep] [-f save-file] [-d delimiter]";
 
 int NAMING_FLAG = 0;		    // -a flag
 int TIMER_SLEEP_US = 45000;	    // -t flag
@@ -82,7 +81,6 @@ void* collect_user_input(void* state)
 		    tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // restore terminal settings
 		    pthread_mutex_lock(&context->mutex);
 		    
-		    // TODO: should quote characters be allowed? they work, but is it a pain for the person using the csv?
 		    printf("Name the new split which occurred at the following time:\n\n");
 		    fgets(user_split_name, 199, stdin);
 		    // remove the \n from the end, because it also scans that
@@ -100,28 +98,21 @@ void* collect_user_input(void* state)
 		    pthread_mutex_unlock(&context->mutex);
 		} 
 		else 
-		{
 		    sprintf(user_split_name, "split-number-%d", context->split_count);
-		}
 
 		if (USE_FILE_FLAG) 
 		{
 		    pthread_mutex_lock(&context->mutex);
 		    if (CSV_QUOTE_FLAG) 
-		    {
 			fprintf(context->splits_csv, "\"%d\"%c \"%s\"%c \"%s\"\n", context->split_count, DELIMITER, saved_time, DELIMITER, user_split_name);
-		    } 
 		    else 
-		    {
 			fprintf(context->splits_csv, "%d%c %s%c %s\n", context->split_count, DELIMITER, saved_time, DELIMITER, user_split_name);
-		    }
 		    pthread_mutex_unlock(&context->mutex);
 		}
 
 		if (!SILENCE_FLAG) 
-		{
 		    printf("\033[Asplit\t\t%s\t\tname\t\t%s\t\tcount\t\t%d\n\n", saved_time, user_split_name, context->split_count);
-		}
+
 		change_user_command(c, context);
 
 		break;
@@ -191,7 +182,7 @@ int main(int argc, char** argv)
 		else if (optopt == 'd')
 		    printf("No new single-character delimiter was given.\n");
 		else 
-		    printf("Unknown option.\nUsage:\n%s\n", USAGE);
+		    printf("%s\n", USAGE);
 		return 1;
 	    default:
 		abort();
