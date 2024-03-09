@@ -253,7 +253,7 @@ int main(int argc, char** argv)
 	pthread_mutex_unlock(&context.mutex);
 
 	usleep(TIMER_SLEEP_US); 
-	printf("\033[Atime\t\t%s\n", context.format_time);
+	fprintf(stderr, "\033[Atime\t\t%s\n", context.format_time);
 
 	//printf("%c", c);
     }
