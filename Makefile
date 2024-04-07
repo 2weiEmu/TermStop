@@ -1,6 +1,6 @@
 objects = src/*.c
 libs = 
-flags = -Wall -Werror -Wextra -Os
+flags = -Wall -Werror -Wextra -O3
 
 run: $(objects)
 	@gcc -o main $(flags) $(objects) $(libs)
